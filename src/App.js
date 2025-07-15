@@ -3,6 +3,8 @@ import SkillMatrix from './components/SkillMatrix';
 import WeekCard from './components/WeekCard';
 import AchievementsView from './components/AchievementsView';
 import NotebookView from './components/NotebookView';
+import LocalClock from './components/LocalClock';
+import LocalCalendar from './components/LocalCalendar';
 import { useTranslation } from 'react-i18next';
 import './index.css';
 
@@ -40,10 +42,16 @@ function App() {
   return (
     <div className={`min-h-screen bg-gradient-to-br from-slate-50 to-slate-200 text-gray-900 ${rtl ? 'font-arabic' : ''}`}>
       <header className="flex flex-col md:flex-row items-center justify-between px-4 py-4 bg-white shadow">
-        <h1 className="text-2xl font-bold tracking-tight text-blue-700 mb-2 md:mb-0">
-          {t('Cybersecurity Training Plan')}
-        </h1>
-        <div className="flex gap-2 items-center">
+        <div className="flex flex-col md:flex-row items-center gap-4 w-full">
+          <h1 className="text-2xl font-bold tracking-tight text-blue-700 mb-2 md:mb-0">
+            {t('Cybersecurity Training Plan')}
+          </h1>
+          <div className="flex-1 flex flex-col md:flex-row gap-2 items-center justify-end">
+            <LocalClock />
+            <LocalCalendar />
+          </div>
+        </div>
+        <div className="flex gap-2 items-center mt-2 md:mt-0">
           <button onClick={() => i18n.changeLanguage('en')} className={`px-3 py-1 rounded ${i18n.language==='en'?'bg-blue-600 text-white':'bg-gray-200'}`}>EN</button>
           <button onClick={() => i18n.changeLanguage('ar')} className={`px-3 py-1 rounded ${i18n.language==='ar'?'bg-blue-600 text-white':'bg-gray-200'}`}>العربية</button>
         </div>
