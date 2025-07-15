@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import ProgressCircle from './ProgressCircle';
 import NoteEditor from './NoteEditor';
 import JournalEditor from './JournalEditor';
 import { useTranslation } from 'react-i18next';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import DayTemplate from './DayTemplate';
 
 function DayView({
   weekId,
@@ -22,6 +23,7 @@ function DayView({
   const [isWorkSession, setIsWorkSession] = useState(true);
   const [remainingTime, setRemainingTime] = useState(timerSettings.work * 60);
   const [expandedTask, setExpandedTask] = useState(null);
+  const [showTemplate, setShowTemplate] = useState(false);
 
   // حساب التقدم اليومي
   const totalTasks = dayData.tasks.length;
@@ -31,6 +33,21 @@ function DayView({
     total: totalTasks,
     percentage: totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
   };
+
+  // حساب إحصائيات اليوم للقالب
+  const completedTasksList = dayData.tasks.filter((task, idx) => appState.progress[weekId]?.days[dayIndex]?.tasks[idx] === 'completed');
+  const sectionStats = {};
+  dayData.tasks.forEach((task, idx) => {
+    if (!sectionStats[task.type]) sectionStats[task.type] = 0;
+    if (appState.progress[weekId]?.days[dayIndex]?.tasks[idx] === 'completed') sectionStats[task.type]++;
+  });
+  const tagsCount = {};
+  completedTasksList.forEach(task => {
+    (task.keywords || []).forEach(tag => {
+      tagsCount[tag] = (tagsCount[tag] || 0) + 1;
+    });
+  });
+  const tagsArr = Object.entries(tagsCount).map(([name, count]) => ({ name, count }));
 
   useEffect(() => {
     return () => {
@@ -89,7 +106,6 @@ function DayView({
     const newTasks = Array.from(dayData.tasks);
     const [removed] = newTasks.splice(result.source.index, 1);
     newTasks.splice(result.destination.index, 0, removed);
-    // تحديث ترتيب المهام في الحالة (يفضل أن تكون في appState أو في weekData)
     setAppState(prev => {
       const newState = JSON.parse(JSON.stringify(prev));
       newState.plan[weekId].days[dayIndex].tasks = newTasks;
@@ -147,6 +163,37 @@ function DayView({
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 border border-gray-200 dark:border-gray-700">
+      <div className="flex justify-end mb-4">
+        <button
+          onClick={() => setShowTemplate(true)}
+          className="px-4 py-2 rounded bg-gradient-to-r from-blue-600 via-purple-600 to-green-500 text-white font-bold shadow hover:scale-105 transition"
+        >
+          عرض قالب اليوم
+        </button>
+      </div>
+      {showTemplate && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto p-4 relative animate-fade-in">
+            <button
+              onClick={() => setShowTemplate(false)}
+              className="absolute top-2 end-2 text-2xl text-gray-400 hover:text-red-500"
+            >&times;</button>
+            <DayTemplate
+              day={dayData}
+              progress={{ completed: completedTasks, total: totalTasks, percentage: progress.percentage }}
+              totalTime={dayData.tasks.reduce((sum, t) => sum + t.duration, 0)}
+              notesCount={appState.notes[weekId]?.days[dayIndex] ? Object.keys(appState.notes[weekId].days[dayIndex]).length : 0}
+              journalCount={appState.journal[weekId]?.days[dayIndex] ? 1 : 0}
+              resourcesCount={dayData.resources ? dayData.resources.length : 0}
+              tags={tagsArr}
+              completedTasks={completedTasksList}
+              allTasks={dayData.tasks}
+              sectionStats={sectionStats}
+              rating={null}
+            />
+          </div>
+        </div>
+      )}
       <div className="flex items-center justify-between mb-4">
         <div>
           <h3 className="text-xl font-bold text-blue-700 mb-1">{dayData.day[i18n.language]}</h3>
@@ -154,7 +201,6 @@ function DayView({
         </div>
         <ProgressCircle percentage={progress.percentage} />
       </div>
-      {/* إبراز المهمة الحالية أو التالية */}
       {progress.completed === progress.total && progress.total > 0 && (
         <div className="mb-6 p-4 rounded-xl bg-gradient-to-r from-green-100 to-green-200 text-green-900 text-center font-bold text-lg shadow animate-fade-in">
           🎉 {t('Congratulations! You have completed all tasks for today.')}
@@ -224,7 +270,6 @@ function DayView({
         </Droppable>
       </DragDropContext>
       <div className="mt-8">
-        {/* عرض الموارد اليومية */}
         {dayData.resources && dayData.resources.length > 0 && (
           <div className="mb-8 p-4 bg-gray-50 dark:bg-gray-900/30 rounded-xl border border-gray-200 dark:border-gray-700 animate-fade-in">
             <h4 className="font-semibold mb-3 text-blue-700 flex items-center gap-2">
@@ -246,7 +291,6 @@ function DayView({
             </ul>
           </div>
         )}
-        {/* عرض مهمة التدوين اليومية */}
         {dayData.notes_prompt && (
           <JournalEditor
             weekId={weekId}
