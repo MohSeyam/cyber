@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import ProgressCircle from './ProgressCircle';
 import NoteEditor from './NoteEditor';
+import JournalEditor from './JournalEditor';
 import { useTranslation } from 'react-i18next';
 
 function DayView({
@@ -177,6 +178,38 @@ function DayView({
             </div>
           );
         })}
+      </div>
+      <div className="mt-8">
+        {/* عرض الموارد اليومية */}
+        {dayData.resources && dayData.resources.length > 0 && (
+          <div className="mb-8 p-4 bg-gray-50 dark:bg-gray-900/30 rounded-xl border border-gray-200 dark:border-gray-700 animate-fade-in">
+            <h4 className="font-semibold mb-3 text-blue-700 flex items-center gap-2">
+              <Icons.link className="w-5 h-5 text-blue-400" />
+              {t('Resources')}
+            </h4>
+            <ul className="space-y-2">
+              {dayData.resources.map((res, i) => (
+                <li key={i} className="flex items-center gap-3 p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-800/30 transition">
+                  {res.type === 'video' ? (
+                    <Icons.video className="w-5 h-5 text-red-500" />
+                  ) : (
+                    <Icons.article className="w-5 h-5 text-green-600" />
+                  )}
+                  <a href={res.url} target="_blank" rel="noopener noreferrer" className="underline text-blue-700 hover:text-blue-900 font-medium">{res.title}</a>
+                  <span className="text-xs px-2 py-0.5 rounded bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300">{res.type === 'video' ? t('Video') : t('Article')}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+        {/* عرض مهمة التدوين اليومية */}
+        {dayData.notes_prompt && (
+          <JournalEditor
+            weekId={weekId}
+            dayIndex={dayIndex}
+            prompt={dayData.notes_prompt}
+          />
+        )}
       </div>
       <div className="mt-8 p-4 bg-blue-50 dark:bg-blue-900/40 rounded-xl">
         <h4 className="font-semibold mb-2 text-blue-700">{t('Pomodoro Timer')}</h4>
