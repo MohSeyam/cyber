@@ -1,6 +1,8 @@
 import React, { useContext, useMemo } from 'react';
-import { Bar, Doughnut } from 'react-chartjs-2';
 import { AppContext } from '../App';
+import StatsSummary from './StatsSummary';
+import SkillBarChart from './SkillBarChart';
+import PhaseDoughnutChart from './PhaseDoughnutChart';
 
 function AchievementsView() {
     const { lang, setView, appState, planData, phases, translations } = useContext(AppContext);
@@ -98,20 +100,13 @@ function AchievementsView() {
                  <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">{t.achievementsTitle}</h1>
                  <button onClick={() => setView({page: 'skill-matrix', params: {}})} className={`px-4 py-2 text-sm font-semibold rounded-md transition-colors bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 hover:bg-blue-200 dark:hover:bg-blue-800`}>{t.skillsMatrix}</button>
             </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-center">
-                <div className="bg-gray-100 dark:bg-gray-800/50 p-4 rounded-lg"><p className="text-2xl font-bold">{overallProgress.toFixed(0)}%</p><p className="text-sm text-gray-500 dark:text-gray-400">{t.totalPlanProgress}</p></div>
-                <div className="bg-gray-100 dark:bg-gray-800/50 p-4 rounded-lg"><p className="text-2xl font-bold">{stats.completedTasks}</p><p className="text-sm text-gray-500 dark:text-gray-400">{t.completedTasks}</p></div>
-                <div className="bg-gray-100 dark:bg-gray-800/50 p-4 rounded-lg"><p className="text-2xl font-bold">{stats.learningHours.toFixed(1)}</p><p className="text-sm text-gray-500 dark:text-gray-400">{t.learningHours}</p></div>
-                <div className="bg-gray-100 dark:bg-gray-800/50 p-4 rounded-lg"><p className="text-2xl font-bold">{stats.totalNotes}</p><p className="text-sm text-gray-500 dark:text-gray-400">{t.totalNotes}</p></div>
-            </div>
-            
+            <StatsSummary overallProgress={overallProgress} stats={stats} t={t} />
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-                <div className="lg:col-span-3 bg-gray-50 dark:bg-gray-800/50 p-4 rounded-lg">
-                    <Bar options={chartOptions} data={chartData} />
+                <div className="lg:col-span-3">
+                    <SkillBarChart chartData={chartData} chartOptions={chartOptions} />
                 </div>
-                <div className="lg:col-span-2 bg-gray-50 dark:bg-gray-800/50 p-4 rounded-lg h-80">
-                    <Doughnut options={doughnutOptions} data={doughnutData} />
+                <div className="lg:col-span-2">
+                    <PhaseDoughnutChart doughnutData={doughnutData} doughnutOptions={doughnutOptions} />
                 </div>
             </div>
         </div>
