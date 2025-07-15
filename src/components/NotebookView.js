@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useContext } from 'react';
 import { AppContext } from '../App';
 import NoteEditor from './NoteEditor';
+import TaskNotesList from './TaskNotesList';
 
 function NotebookView() {
     const { lang, appState, setModal, planData, translations, showToast } = useContext(AppContext);
@@ -90,20 +91,7 @@ function NotebookView() {
             {/* Graph view and notes rendering would go here, omitted for brevity */}
             <div className="overflow-y-auto flex-grow mt-6">
                 {activeTab === 'tasks' && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {allTaskNotes.map(note => (
-                            <div key={note.updatedAt} className="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-lg shadow border border-gray-200 dark:border-gray-700 cursor-pointer hover:shadow-lg transition" onClick={() => openNoteModal(note)}>
-                                <div className="flex justify-between items-center mb-2">
-                                    <h3 className="text-lg font-bold text-gray-900 dark:text-white truncate">{note.title}</h3>
-                                    <span className="text-xs text-gray-500 dark:text-gray-400">{new Date(note.updatedAt).toLocaleDateString()}</span>
-                                </div>
-                                <div className="prose prose-sm dark:prose-invert line-clamp-4 mb-2">
-                                    {note.content}
-                                </div>
-                                <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">{note.taskData?.description?.[lang]}</div>
-                            </div>
-                        ))}
-                    </div>
+                    <TaskNotesList notes={allTaskNotes} lang={lang} onEdit={openNoteModal} />
                 )}
                 {activeTab === 'journal' && (
                     <div className="space-y-4">
