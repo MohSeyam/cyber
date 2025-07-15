@@ -1,13 +1,36 @@
 import React from 'react';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
+
+const modules = {
+  toolbar: [
+    [{ 'header': [1, 2, 3, false] }],
+    ['bold', 'italic', 'underline', 'strike'],
+    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+    ['link'],
+    [{ 'direction': 'rtl' }],
+    ['clean']
+  ]
+};
+
+const formats = [
+  'header', 'bold', 'italic', 'underline', 'strike',
+  'list', 'bullet', 'link', 'direction'
+];
 
 function SimpleEditor({ content, onUpdate }) {
-    return (
-        <textarea
-            className="w-full p-3 border rounded-lg bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 min-h-[150px] focus:ring-blue-500 focus:border-blue-500"
-            value={content}
-            onChange={(e) => onUpdate(e.target.value)}
-        />
-    );
+  return (
+    <div dir="rtl">
+      <ReactQuill
+        theme="snow"
+        value={content}
+        onChange={onUpdate}
+        modules={modules}
+        formats={formats}
+        style={{ minHeight: 150, background: 'white' }}
+      />
+    </div>
+  );
 }
 
 export default SimpleEditor;
