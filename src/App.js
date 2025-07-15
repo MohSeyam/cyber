@@ -6,6 +6,7 @@ import NotebookView from './components/NotebookView';
 import LocalClock from './components/LocalClock';
 import LocalCalendar from './components/LocalCalendar';
 import Logo from './components/Logo';
+import LogoArabic from './components/LogoArabic';
 import { useTranslation } from 'react-i18next';
 import './index.css';
 
@@ -43,8 +44,8 @@ function App() {
   return (
     <div className={`min-h-screen bg-gradient-to-br from-slate-50 to-slate-200 text-gray-900 ${rtl ? 'font-arabic' : ''}`}>
       <header className="flex flex-col md:flex-row items-center justify-between px-4 py-4 bg-white shadow">
-        <div className="flex flex-col md:flex-row items-center gap-4 w-full">
-          <Logo size="2xl" />
+        <div className={`flex flex-col md:flex-row items-center gap-4 w-full ${i18n.language === 'ar' ? 'justify-end' : 'justify-start'}`}>
+          {i18n.language === 'ar' ? <LogoArabic size="2xl" /> : <Logo size="2xl" />}
           <div className="flex-1 flex flex-col md:flex-row gap-2 items-center justify-end">
             <LocalClock />
             <LocalCalendar />
