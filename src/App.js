@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useMemo, createContext, useContext, useRef } from 'react';
-import { Bar, Doughnut } from 'react-chartjs-2';
-import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend } from 'chart.js';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Transition } from '@headlessui/react';
-
-// Register Chart.js components
-ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend);
+import React, { useState } from 'react';
+import SkillMatrix from './components/SkillMatrix';
+import WeekCard from './components/WeekCard';
+import AchievementsView from './components/AchievementsView';
+import NotebookView from './components/NotebookView';
+import { useTranslation } from 'react-i18next';
+import './index.css';
 
 // --- DATA & CONFIGURATION (FULL 50 WEEKS) ---
 const planData = [
@@ -27,6 +26,47 @@ const planData = [
     },
 ];
 
-// ... (rest of your code remains unchanged, as in your provided code)
+function App() {
+  const { t, i18n } = useTranslation();
+  const [rtl, setRtl] = useState(i18n.language === 'ar');
+  const [view, setView] = useState('plan'); // plan | achievements | notebook
+
+  // تغيير اتجاه الصفحة عند تغيير اللغة
+  React.useEffect(() => {
+    setRtl(i18n.language === 'ar');
+    document.documentElement.dir = i18n.language === 'ar' ? 'rtl' : 'ltr';
+  }, [i18n.language]);
+
+  return (
+    <div className={`min-h-screen bg-gradient-to-br from-slate-50 to-slate-200 text-gray-900 ${rtl ? 'font-arabic' : ''}`}>
+      <header className="flex flex-col md:flex-row items-center justify-between px-4 py-4 bg-white shadow">
+        <h1 className="text-2xl font-bold tracking-tight text-blue-700 mb-2 md:mb-0">
+          {t('Cybersecurity Training Plan')}
+        </h1>
+        <div className="flex gap-2 items-center">
+          <button onClick={() => i18n.changeLanguage('en')} className={`px-3 py-1 rounded ${i18n.language==='en'?'bg-blue-600 text-white':'bg-gray-200'}`}>EN</button>
+          <button onClick={() => i18n.changeLanguage('ar')} className={`px-3 py-1 rounded ${i18n.language==='ar'?'bg-blue-600 text-white':'bg-gray-200'}`}>العربية</button>
+        </div>
+      </header>
+      <nav className="flex justify-center gap-4 py-4">
+        <button onClick={()=>setView('plan')} className={`px-4 py-2 rounded ${view==='plan'?'bg-blue-500 text-white':'bg-gray-100'}`}>{t('Plan')}</button>
+        <button onClick={()=>setView('achievements')} className={`px-4 py-2 rounded ${view==='achievements'?'bg-blue-500 text-white':'bg-gray-100'}`}>{t('Achievements')}</button>
+        <button onClick={()=>setView('notebook')} className={`px-4 py-2 rounded ${view==='notebook'?'bg-blue-500 text-white':'bg-gray-100'}`}>{t('Notebook')}</button>
+      </nav>
+      <main className="max-w-5xl mx-auto px-2 py-6">
+        {view === 'plan' && (
+          <div className="space-y-6">
+            <SkillMatrix planData={planData} />
+            {planData.map(week => (
+              <WeekCard key={week.week} week={week} rtl={rtl} />
+            ))}
+          </div>
+        )}
+        {view === 'achievements' && <AchievementsView />}
+        {view === 'notebook' && <NotebookView rtl={rtl} />}
+      </main>
+    </div>
+  );
+}
 
 export default App;
