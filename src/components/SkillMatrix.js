@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useContext, useMemo } from 'react';
 import { AppContext } from '../App';
+import SkillSearchBar from './SkillSearchBar';
+import CategoryProgressBar from './CategoryProgressBar';
+import SkillTable from './SkillTable';
 
 function SkillMatrix() {
   const { lang, planData, translations } = useContext(AppContext);
@@ -61,73 +64,33 @@ function SkillMatrix() {
       (categoryFilter === "" || skill.category === categoryFilter)
   );
 
+  const categories = useMemo(() => Array.from(new Set(skills.map(s => s.category))), [skills]);
+
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden border border-gray-200 dark:border-gray-700">
       <div className="p-6 bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/50 dark:to-blue-800/50">
         <h2 className="text-2xl font-bold text-gray-800 dark:text-white">مصفوفة المهارات التفاعلية</h2>
         <p className="mt-2 text-gray-600 dark:text-gray-300">تتبع تطور مهاراتك في الأمن السيبراني</p>
       </div>
-
       <div className="p-6">
-        <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">بحث بالاسم</label>
-            <input type="text" placeholder="ابحث عن مهارة..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="w-full p-2 border rounded-md dark:bg-gray-700"/>
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">تصفية حسب الفئة</label>
-            <select value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)} className="w-full p-2 border rounded-md dark:bg-gray-700">
-              <option value="">كل الفئات</option>
-              {Array.from(new Set(skills.map(s => s.category))).map(category => (
-                <option key={category} value={category}>{category}</option>
-              ))}
-            </select>
-          </div>
-        </div>
-
+        <SkillSearchBar
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          categoryFilter={categoryFilter}
+          setCategoryFilter={setCategoryFilter}
+          categories={categories}
+        />
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          {Array.from(new Set(skills.map(s => s.category))).map(category => (
-            <div key={category} className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
-              <h3 className="font-medium text-sm mb-1">{category}</h3>
-              <div className="w-full bg-gray-200 dark:bg-gray-600 h-2 rounded-full"><div className="bg-blue-500 h-2 rounded-full" style={{ width: `${calculateCategoryProgress(category)}%` }}></div></div>
-              <p className="text-xs mt-1 text-right">{calculateCategoryProgress(category)}% إتمام</p>
-            </div>
+          {categories.map(category => (
+            <CategoryProgressBar key={category} category={category} progress={calculateCategoryProgress(category)} />
           ))}
         </div>
-
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-            <thead className="bg-gray-50 dark:bg-gray-700">
-              <tr>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">المهارة</th>
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">المستوى الحالي</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">ملاحظات</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-              {filteredSkills.map((skill) => (
-                  <tr key={skill.id}>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900 dark:text-white">{skill.name}</div>
-                      <div className="text-sm text-gray-500 dark:text-gray-400">{skill.category}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-center">
-                      <div className="flex justify-center space-x-1 rtl:space-x-reverse">
-                        {skillLevels.map(level => (
-                          <button key={level.id} onClick={() => updateSkillLevel(skill.id, level.id)} className={`px-3 py-1 text-xs rounded-full ${skill.level === level.id ? level.color : 'bg-gray-100 dark:bg-gray-600 text-gray-800 dark:text-gray-200 hover:bg-gray-200'}`}>
-                            {level.name}
-                          </button>
-                        ))}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <input type="text" value={skill.notes} onChange={(e) => updateSkillNotes(skill.id, e.target.value)} placeholder="أضف ملاحظات..." className="w-full p-2 border rounded-md text-sm dark:bg-gray-700"/>
-                    </td>
-                  </tr>
-                ))}
-            </tbody>
-          </table>
-        </div>
+        <SkillTable
+          skills={filteredSkills}
+          skillLevels={skillLevels}
+          updateSkillLevel={updateSkillLevel}
+          updateSkillNotes={updateSkillNotes}
+        />
       </div>
     </div>
   );
