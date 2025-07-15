@@ -3,6 +3,7 @@ import ProgressCircle from './ProgressCircle';
 import NoteEditor from './NoteEditor';
 import JournalEditor from './JournalEditor';
 import { useTranslation } from 'react-i18next';
+import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 
 function DayView({
   weekId,
@@ -82,6 +83,20 @@ function DayView({
     });
   };
 
+  // تحديث ترتيب المهام عند السحب والإفلات
+  const onDragEnd = (result) => {
+    if (!result.destination) return;
+    const newTasks = Array.from(dayData.tasks);
+    const [removed] = newTasks.splice(result.source.index, 1);
+    newTasks.splice(result.destination.index, 0, removed);
+    // تحديث ترتيب المهام في الحالة (يفضل أن تكون في appState أو في weekData)
+    setAppState(prev => {
+      const newState = JSON.parse(JSON.stringify(prev));
+      newState.plan[weekId].days[dayIndex].tasks = newTasks;
+      return newState;
+    });
+  };
+
   // فتح محرر الملاحظات
   const openNoteModal = (taskId, taskDescription) => {
     const note = appState.notes[weekId]?.days[dayIndex]?.[taskId] || { title: '', content: '', keywords: [] };
@@ -154,48 +169,60 @@ function DayView({
           <div className="h-full bg-gradient-to-r from-blue-400 to-blue-600 transition-all" style={{width: `${progress.percentage}%`}}></div>
         </div>
       </div>
-      <div className="grid md:grid-cols-2 gap-4">
-        {dayData.tasks.map((task, idx) => {
-          const completed = appState.progress[weekId]?.days[dayIndex]?.tasks[idx] === 'completed';
-          // تحديد المهمة الحالية (أول مهمة غير مكتملة)
-          const isCurrent = !completed && dayData.tasks.findIndex((t, i) => appState.progress[weekId]?.days[dayIndex]?.tasks[i] !== 'completed') === idx;
-          return (
-            <div
-              key={task.id}
-              className={`relative group bg-white dark:bg-gray-900 border-2 rounded-xl p-4 shadow transition-all duration-300 hover:scale-[1.02] ${completed ? 'border-green-400' : isCurrent ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/40 dark:to-blue-800/40 ring-2 ring-blue-300' : 'border-gray-200 dark:border-gray-700'}`}
-              style={{ transition: 'box-shadow 0.3s, border-color 0.3s, background 0.3s' }}
-            >
-              {isCurrent && (
-                <span className="absolute top-2 end-2 bg-blue-500 text-white text-xs font-bold px-2 py-0.5 rounded shadow animate-bounce">
-                  {t('Current Task')}
-                </span>
-              )}
-              <div className="flex items-center gap-2 mb-2">
-                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-bold ${task.type==='Blue Team' ? 'bg-blue-100 text-blue-700' : task.type==='Red Team' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'}`}>{task.type}</span>
-                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200"><Icons.clock className="w-3 h-3 me-1" />{task.duration} {t('min')}</span>
-                {completed && <span className="ml-2 text-green-600 font-bold">✓ {t('Completed')}</span>}
-              </div>
-              <div className={`text-gray-800 dark:text-gray-100 text-base font-medium ${completed ? 'line-through text-gray-400' : ''}`}>{task.description[i18n.language]}</div>
-              <div className="flex gap-2 mt-4">
-                <button onClick={() => toggleTask(idx)} className={`flex-1 py-1 rounded-lg font-semibold transition-colors ${completed ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700 hover:bg-blue-200'}`}>{completed ? t('Mark as Pending') : t('Mark as Done')}</button>
-                <button onClick={() => openNoteModal(task.id, task.description[i18n.language])} className="flex items-center gap-1 px-3 py-1 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200"><Icons.noteIcon className="w-4 h-4" />{t('Note')}</button>
-                <button onClick={() => addToCalendar(task)} className="flex items-center gap-1 px-3 py-1 rounded-lg bg-green-100 hover:bg-green-200 text-green-700"><Icons.calendar className="w-4 h-4" />{t('Calendar')}</button>
-                <button onClick={() => setExpandedTask(expandedTask === idx ? null : idx)} className="flex items-center gap-1 px-2 py-1 rounded-lg bg-gray-50 hover:bg-gray-100 text-gray-500"><Icons.chevronDown className={`w-4 h-4 transform transition-transform ${expandedTask === idx ? 'rotate-180' : ''}`} /></button>
-              </div>
-              {expandedTask === idx && (
-                <div className="mt-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg text-sm text-gray-700 dark:text-gray-300 animate-fade-in">
-                  <div>{t('Task Details')}:</div>
-                  <ul className="list-disc rtl:list-decimal ms-5 mt-1">
-                    <li>{t('Type')}: {task.type}</li>
-                    <li>{t('Duration')}: {task.duration} {t('min')}</li>
-                    <li>{t('Description')}: {task.description[i18n.language]}</li>
-                  </ul>
-                </div>
-              )}
+      <DragDropContext onDragEnd={onDragEnd}>
+        <Droppable droppableId="tasks-droppable" direction="vertical">
+          {(provided) => (
+            <div className="grid md:grid-cols-2 gap-4" ref={provided.innerRef} {...provided.droppableProps}>
+              {dayData.tasks.map((task, idx) => {
+                const completed = appState.progress[weekId]?.days[dayIndex]?.tasks[idx] === 'completed';
+                const isCurrent = !completed && dayData.tasks.findIndex((t, i) => appState.progress[weekId]?.days[dayIndex]?.tasks[i] !== 'completed') === idx;
+                return (
+                  <Draggable key={task.id} draggableId={task.id} index={idx}>
+                    {(provided, snapshot) => (
+                      <div
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                        {...provided.dragHandleProps}
+                        className={`relative group bg-white dark:bg-gray-900 border-2 rounded-xl p-4 shadow transition-all duration-300 hover:scale-[1.02] ${completed ? 'border-green-400' : isCurrent ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/40 dark:to-blue-800/40 ring-2 ring-blue-300' : 'border-gray-200 dark:border-gray-700'} ${snapshot.isDragging ? 'ring-4 ring-blue-200 scale-105 z-10' : ''}`}
+                        style={{ transition: 'box-shadow 0.3s, border-color 0.3s, background 0.3s', ...provided.draggableProps.style }}
+                      >
+                        {isCurrent && (
+                          <span className="absolute top-2 end-2 bg-blue-500 text-white text-xs font-bold px-2 py-0.5 rounded shadow animate-bounce">
+                            {t('Current Task')}
+                          </span>
+                        )}
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-bold ${task.type==='Blue Team' ? 'bg-blue-100 text-blue-700' : task.type==='Red Team' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'}`}>{task.type}</span>
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200"><Icons.clock className="w-3 h-3 me-1" />{task.duration} {t('min')}</span>
+                          {completed && <span className="ml-2 text-green-600 font-bold">✓ {t('Completed')}</span>}
+                        </div>
+                        <div className={`text-gray-800 dark:text-gray-100 text-base font-medium ${completed ? 'line-through text-gray-400' : ''}`}>{task.description[i18n.language]}</div>
+                        <div className="flex gap-2 mt-4">
+                          <button onClick={() => toggleTask(idx)} className={`flex-1 py-1 rounded-lg font-semibold transition-colors ${completed ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700 hover:bg-blue-200'}`}>{completed ? t('Mark as Pending') : t('Mark as Done')}</button>
+                          <button onClick={() => openNoteModal(task.id, task.description[i18n.language])} className="flex items-center gap-1 px-3 py-1 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200"><Icons.noteIcon className="w-4 h-4" />{t('Note')}</button>
+                          <button onClick={() => addToCalendar(task)} className="flex items-center gap-1 px-3 py-1 rounded-lg bg-green-100 hover:bg-green-200 text-green-700"><Icons.calendar className="w-4 h-4" />{t('Calendar')}</button>
+                          <button onClick={() => setExpandedTask(expandedTask === idx ? null : idx)} className="flex items-center gap-1 px-2 py-1 rounded-lg bg-gray-50 hover:bg-gray-100 text-gray-500"><Icons.chevronDown className={`w-4 h-4 transform transition-transform ${expandedTask === idx ? 'rotate-180' : ''}`} /></button>
+                        </div>
+                        {expandedTask === idx && (
+                          <div className="mt-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg text-sm text-gray-700 dark:text-gray-300 animate-fade-in">
+                            <div>{t('Task Details')}:</div>
+                            <ul className="list-disc rtl:list-decimal ms-5 mt-1">
+                              <li>{t('Type')}: {task.type}</li>
+                              <li>{t('Duration')}: {task.duration} {t('min')}</li>
+                              <li>{t('Description')}: {task.description[i18n.language]}</li>
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </Draggable>
+                );
+              })}
+              {provided.placeholder}
             </div>
-          );
-        })}
-      </div>
+          )}
+        </Droppable>
+      </DragDropContext>
       <div className="mt-8">
         {/* عرض الموارد اليومية */}
         {dayData.resources && dayData.resources.length > 0 && (
