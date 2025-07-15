@@ -1,0 +1,11 @@
+total 264K
+drwxr-xr-x   2 ubuntu ubuntu 4.0K Jul 15 10:23 build
+-rw-r--r--   1 ubuntu ubuntu  189 Jul 15 10:23 build_file_list.txt
+drwxr-xr-x   2 ubuntu ubuntu 4.0K Jul 15 09:09 dist
+drwxr-xr-x 289 ubuntu ubuntu  12K Jul 15 08:11 node_modules
+-rw-r--r--   1 ubuntu ubuntu  694 Jul 15 08:11 package.json
+-rw-r--r--   1 ubuntu ubuntu 224K Jul 15 08:11 package-lock.json
+drwxr-xr-x   2 ubuntu ubuntu 4.0K Jul 15 09:37 public
+-rw-r--r--   1 ubuntu ubuntu    0 Jul 15 10:23 root_file_list.txt
+drwxr-xr-x   2 ubuntu ubuntu 4.0K Jul 15 08:16 src
+-rw-r--r--   1 ubuntu ubuntu  745 Jul 15 08:11 webpack.config.js
