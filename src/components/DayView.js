@@ -139,6 +139,12 @@ function DayView({
         </div>
         <ProgressCircle percentage={progress.percentage} />
       </div>
+      {/* إبراز المهمة الحالية أو التالية */}
+      {progress.completed === progress.total && progress.total > 0 && (
+        <div className="mb-6 p-4 rounded-xl bg-gradient-to-r from-green-100 to-green-200 text-green-900 text-center font-bold text-lg shadow animate-fade-in">
+          🎉 {t('Congratulations! You have completed all tasks for today.')}
+        </div>
+      )}
       <div className="mb-6">
         <div className="flex items-center gap-2 mb-2">
           <span className="text-sm text-gray-500">{t('Tasks Progress')}:</span>
@@ -151,8 +157,19 @@ function DayView({
       <div className="grid md:grid-cols-2 gap-4">
         {dayData.tasks.map((task, idx) => {
           const completed = appState.progress[weekId]?.days[dayIndex]?.tasks[idx] === 'completed';
+          // تحديد المهمة الحالية (أول مهمة غير مكتملة)
+          const isCurrent = !completed && dayData.tasks.findIndex((t, i) => appState.progress[weekId]?.days[dayIndex]?.tasks[i] !== 'completed') === idx;
           return (
-            <div key={task.id} className={`relative group bg-white dark:bg-gray-900 border-2 rounded-xl p-4 shadow transition-all duration-200 hover:scale-[1.02] ${completed ? 'border-green-400' : 'border-gray-200 dark:border-gray-700'}`}>
+            <div
+              key={task.id}
+              className={`relative group bg-white dark:bg-gray-900 border-2 rounded-xl p-4 shadow transition-all duration-300 hover:scale-[1.02] ${completed ? 'border-green-400' : isCurrent ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/40 dark:to-blue-800/40 ring-2 ring-blue-300' : 'border-gray-200 dark:border-gray-700'}`}
+              style={{ transition: 'box-shadow 0.3s, border-color 0.3s, background 0.3s' }}
+            >
+              {isCurrent && (
+                <span className="absolute top-2 end-2 bg-blue-500 text-white text-xs font-bold px-2 py-0.5 rounded shadow animate-bounce">
+                  {t('Current Task')}
+                </span>
+              )}
               <div className="flex items-center gap-2 mb-2">
                 <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-bold ${task.type==='Blue Team' ? 'bg-blue-100 text-blue-700' : task.type==='Red Team' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'}`}>{task.type}</span>
                 <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200"><Icons.clock className="w-3 h-3 me-1" />{task.duration} {t('min')}</span>
