@@ -2,6 +2,7 @@ import React, { useState, useMemo, useContext } from 'react';
 import { AppContext } from '../App';
 import NoteEditor from './NoteEditor';
 import TaskNotesList from './TaskNotesList';
+import JournalEntriesList from './JournalEntriesList';
 
 function NotebookView() {
     const { lang, appState, setModal, planData, translations, showToast } = useContext(AppContext);
@@ -94,14 +95,7 @@ function NotebookView() {
                     <TaskNotesList notes={allTaskNotes} lang={lang} onEdit={openNoteModal} />
                 )}
                 {activeTab === 'journal' && (
-                    <div className="space-y-4">
-                        {allJournalEntries.map(entry => (
-                            <div key={entry.updatedAt} className="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-lg">
-                                 <p className="text-xs text-gray-500 dark:text-gray-400">{t.weekTitle} {entry.weekData.week} - {entry.dayData.day[lang]}</p>
-                                 <div className="prose prose-sm dark:prose-invert mt-2" dangerouslySetInnerHTML={{ __html: entry.content }}></div>
-                            </div>
-                        ))}
-                    </div>
+                    <JournalEntriesList entries={allJournalEntries} lang={lang} />
                 )}
             </div>
         </div>
